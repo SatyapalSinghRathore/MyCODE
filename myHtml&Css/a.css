@@ -1,0 +1,26 @@
+body {
+    background-image: url();
+    margin: 0;
+}
+.blue {
+    color: blue;
+    /* background: rgb(88, 36, 36); */
+    background-image: url("Bastien_Grivet_city_future_panorama_sunset_spaceship_2560x1440.jpg");
+    padding: 50px 20px 50px 20px;
+    margin: 0;
+}
+.red {
+    float: left;
+    color:white;
+    padding:5px 10px 5px 10px;
+    background: rgb(39, 38, 38);
+}
+.a {
+    background-color: rgb(17, 16, 16);
+    padding: 5px 10px 5px 20px;
+    color: white;
+}
+#div1 {
+    background-color: rgb(17, 16, 16);
+    padding-right: 20px;
+}
