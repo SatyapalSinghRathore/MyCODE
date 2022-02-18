@@ -10,5 +10,5 @@ def Number_detail(name):
     except Exception:
         print('\n***ENTER ONLY 10-DIGITS!!***\n')
 if __name__=='__main__':
-    name=input('\nENTER THE YOUR PHONE NO.:')
+    name=input('\nENTER YOUR PHONE NO.:')
     Number_detail(name)
