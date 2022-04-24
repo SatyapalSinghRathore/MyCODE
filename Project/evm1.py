@@ -334,7 +334,7 @@ def readLine(line, characters):
 
     GPIO.output(line, GPIO.LOW)
 
-# Our Raspberry pi excute code from here.
+# Our Raspberry pi start excuting code from here.
 GPIO.output(relay, True)   # This will set our relay pin LOW, so that Light off in VVPAT.
 lcd.clear()                # This will clear all data showing on LCD display.
 GPIO.output(led, True)     # Here, once our Led blinks, we will know that our code has been run.
