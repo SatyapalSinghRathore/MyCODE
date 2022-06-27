@@ -34,7 +34,7 @@ HX711 scale;
 /* Output pins for Buzzer, motorEn_coolingFan(it will control ENable pin of L293D along with cooling Fan), flow_control, motor_enable_1, motor_enable_2,
  for controlling clockwise and Anti-clockwise rotation of
  motor shaft using L293D ic. */
-int buzzer = 1, motor_IN1 = 23, motor_IN2 = 22, motorEn_coolingFan = 21, flow_control = 20;
+int buzzer = 1, motor_IN1 = 23, motor_IN2 = 22, motorEn_coolingFan = 21, flow_control = 20, flow_control_KD = 17;
 
 // variables
 int y_n, choose;
@@ -102,9 +102,9 @@ int keypad_read()
         if (key == '#')
         {
           // buzzer
-          tone(buzzer, 1000);
-          delay_ms(300);
-          noTone(buzzer);
+          digitalWrite(buzzer, HIGH);
+          delay_ms(500);
+          digitalWrite(buzzer, LOW);
           if (i == 1)
           {
             key2 = key1;
@@ -115,21 +115,22 @@ int keypad_read()
         }
         else if (key == '*')
         {
-          tone(buzzer, 1000);
-          delay_ms(300);
-          noTone(buzzer);
+          digitalWrite(buzzer, HIGH);
+          delay_ms(500);
+          digitalWrite(buzzer, LOW);
           reset_variables();
           setup();
-          while(1){
+          while (1)
+          {
             loop();
           }
         }
         else if (key != '#' && key != '*')
         {
           // buzzer
-          tone(buzzer, 1000);
+          digitalWrite(buzzer, HIGH);
           delay_ms(100);
-          noTone(buzzer);
+          digitalWrite(buzzer, LOW);
           if (i == 0)
           {
             key1 = key;
@@ -138,9 +139,9 @@ int keypad_read()
           else if (i == 1)
           {
             key2 = key;
-            tone(buzzer, 1000);
-            delay_ms(300);
-            noTone(buzzer);
+            digitalWrite(buzzer, HIGH);
+            delay_ms(500);
+            digitalWrite(buzzer, LOW);
             break;
           }
         }
@@ -257,7 +258,7 @@ void variables_value_print(const String &text1, int value1, const String &text2,
   lcd.print(value4);
 }
 
-void common_function()
+void BM_L_function()
 {
   lcd.clear();
   lcd.print("Have you changed");
@@ -278,11 +279,12 @@ void common_function()
     else if (y_n == 2)
     {
       /* y_n = 2 it means, answer is 'YES'.( Q.Have you changed shaft? ) */
-      CW_fvalue = scale.get_units()/2;
-      if (CW_fvalue < 0) {
+      CW_fvalue = scale.get_units() / 2;
+      if (CW_fvalue < 0)
+      {
         CW_fvalue = 0.0;
       }
-      
+
       CW_value = int(CW_fvalue);
       variables_value_print("T", T_value, "N", N_value, "WWPC", WWPC_value, "TCW", CW_value);
       T_value = keypad_read();
@@ -297,13 +299,13 @@ void common_function()
       delay_ms(1000);
 
       lcd.clear();
-      lcd.setCursor(4,0);
+      lcd.setCursor(4, 0);
       lcd.print("TWW");
-      lcd.setCursor(4,1);
-      lcd.print(WWPC_value*(N_value-1));
-      lcd.setCursor(10,0);
+      lcd.setCursor(4, 1);
+      lcd.print(WWPC_value * (N_value - 1));
+      lcd.setCursor(10, 0);
       lcd.print("TCW");
-      lcd.setCursor(10,1);
+      lcd.setCursor(10, 1);
       lcd.print(CW_value);
       delay_ms(2000);
 
@@ -331,19 +333,122 @@ void common_function()
   }
 }
 
+void VC_KD_function()
+{
+  lcd.clear();
+  lcd.print("Have you changed");
+  lcd.setCursor(0, 1);
+  lcd.print("shaft? 1NO 2YES");
+  while (true)
+  {
+    y_n = keypad_read();
+    if (y_n == 1)
+    {
+      /* y_n = 1 it means, answer is 'NO'.( Q.Have you changed shaft? ) */
+
+      lcd.clear();
+      lcd.print("Change the shaft");
+      lcd.setCursor(0, 1);
+      lcd.print("Then.");
+    }
+    else if (y_n == 2)
+    {
+      /* y_n = 2 it means, answer is 'YES'.( Q.Have you changed shaft? ) */
+
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("T");
+      lcd.setCursor(0, 1);
+      lcd.print(T_value);
+      T_value = keypad_read();
+
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("T");
+      lcd.setCursor(0, 1);
+      lcd.print(T_value);
+      delay_ms(1000);
+
+      lcd.clear();
+      lcd.print("Do you want to");
+      lcd.setCursor(0, 1);
+      lcd.print("continue? NO/YES");
+      y_n = keypad_read();
+      if (y_n == 1)
+      {
+        /* y_n = 1 it means, answer is 'NO'.( Q.Do you want to continue? ) */
+        reset_variables();
+        break;
+      }
+      else if (y_n == 2)
+      {
+        /* y_n = 2 it means, answer is 'YES'.( Q.Do you want to continue? ) */
+        T_value *= 1000;
+        // There is no special function for VC
+
+        if (choose == 4) {
+          digitalWrite(flow_control_KD, HIGH);
+        }
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Process is going");
+        lcd.setCursor(0, 1);
+        lcd.print("on--------------");
+
+        digitalWrite(motorEn_coolingFan, HIGH);
+
+        digitalWrite(motor_IN1, HIGH);
+        digitalWrite(motor_IN2, LOW);
+        delay_ms(T_value); // there is a issue
+
+        digitalWrite(motor_IN1, LOW);
+        digitalWrite(motor_IN2, LOW);
+
+        digitalWrite(motorEn_coolingFan, LOW);
+
+        if (choose == 4) {
+          digitalWrite(flow_control_KD, LOW);
+        }
+        // function complete sound
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Process Complete");
+
+        while (true)
+        {
+          tone(buzzer, 1000);
+          delay_ms(1000);
+          noTone(buzzer);
+          delay_ms(1000);
+          if (PIND & (1 << 7)) // if Pin 7 of port D is HIGH.
+          {
+            break;
+          }
+        }
+      }
+      reset_variables();
+      break;
+    }
+  }
+}
+
 void setup()
 {
   scale.begin(Dout, Sck);
   scale.set_scale(calibration_factor);
-  scale.tare();    // Assuming there is no weight on the scale at start up, reset the scale to 0.
+  scale.tare(); // Assuming there is no weight on the scale at start up, reset the scale to 0.
 
   DDRD = DDRD & ~(1 << 7); // Make pin 7 of port D as a input.
+  DDRC = DDRC & ~(1 << 1); // Make pin 1 of port C as a input.
+
   pinMode(buzzer, OUTPUT);
   pinMode(motor_IN1, OUTPUT);
   pinMode(motor_IN2, OUTPUT);
   pinMode(motorEn_coolingFan, OUTPUT);
   pinMode(flow_control, OUTPUT);
-
+  pinMode(flow_control_KD, OUTPUT);
+  
+  digitalWrite(flow_control_KD, LOW);
   lcd.begin(16, 2);
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -364,7 +469,7 @@ void loop()
     lcd.print("---Buttermilk---");
     delay_ms(2000);
 
-    common_function();
+    BM_L_function();
     break;
 
   case 2:
@@ -372,103 +477,15 @@ void loop()
     lcd.print("Vegetable Cutter");
     delay_ms(2000);
 
-    lcd.clear();
-    lcd.print("Have you changed");
-    lcd.setCursor(0, 1);
-    lcd.print("shaft? 1NO 2YES");
-    while (true)
-    {
-      y_n = keypad_read();
-      if (y_n == 1)
-      {
-        /* y_n = 1 it means, answer is 'NO'.( Q.Have you changed shaft? ) */
-
-        lcd.clear();
-        lcd.print("Change the shaft");
-        lcd.setCursor(0, 1);
-        lcd.print("Then.");
-      }
-      else if (y_n == 2)
-      {
-        /* y_n = 2 it means, answer is 'YES'.( Q.Have you changed shaft? ) */
-
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("T");
-        lcd.setCursor(0, 1);
-        lcd.print(T_value);
-        T_value = keypad_read();
-
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("T");
-        lcd.setCursor(0, 1);
-        lcd.print(T_value);
-        delay_ms(1000);
-
-        lcd.clear();
-        lcd.print("Do you want to");
-        lcd.setCursor(0, 1);
-        lcd.print("continue? NO/YES");
-        y_n = keypad_read();
-        if (y_n == 1)
-        {
-          /* y_n = 1 it means, answer is 'NO'.( Q.Do you want to continue? ) */
-          reset_variables();
-          break;
-        }
-        else if (y_n == 2)
-        {
-          /* y_n = 2 it means, answer is 'YES'.( Q.Do you want to continue? ) */
-          T_value *= 1000;
-          // There is no special function for VC
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Process is going");
-          lcd.setCursor(0, 1);
-          lcd.print("on--------------");
-
-          digitalWrite(motorEn_coolingFan, HIGH);
-
-          digitalWrite(motor_IN1, HIGH);
-          digitalWrite(motor_IN2, LOW);
-          delay_ms(T_value); // there is a issue
-
-          digitalWrite(motor_IN1, LOW);
-          digitalWrite(motor_IN2, LOW);
-
-          digitalWrite(motorEn_coolingFan, LOW);
-
-          // function complete sound
-          lcd.clear();
-          lcd.setCursor(0, 0);
-          lcd.print("Process Complete");
-
-          while (true)
-          {
-            tone(buzzer, 1000);
-            delay_ms(1000);
-            noTone(buzzer);
-            delay_ms(1000);
-            if (PIND & (1 << 7)) // if Pin 7 of port D is HIGH.
-            {
-              break;
-            }
-          }
-        }
-        reset_variables();
-        break;
-      }
-    }
+    VC_KD_function();
     break;
-    loop();
 
   case 3:
     lcd.clear();
     lcd.print("-----Lassi!-----");
     delay_ms(2000);
 
-    common_function();
+    BM_L_function();
     break;
 
   case 4:
@@ -476,7 +493,7 @@ void loop()
     lcd.print("--Knead dough--");
     delay_ms(2000);
 
-    common_function();
+    VC_KD_function();
     break;
 
   default:
