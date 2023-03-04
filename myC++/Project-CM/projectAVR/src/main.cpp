@@ -1,7 +1,8 @@
 #define F_CPU 16000000UL
 #include <Arduino.h>
+#include<Wire.h>
 #include <HX711.h>
-#include <util/delay.h>
+// #include <util/delay.h>++++++++++
 #include <LiquidCrystal.h>
 #include <Keypad.h>
 
@@ -47,7 +48,7 @@ int delay_ms(unsigned int ms)
 
   while (ms > 0)
   {
-    _delay_ms(1);
+    delay(1);    //approx. assume
     ms--;
   }
   return 0;
@@ -287,12 +288,14 @@ void BM_L_function()
       }
 
       CW_value = int(CW_fvalue);
+      
       variables_value_print("T", T_value, "N", N_value, "WWPC", WWPC_value, "TCW", CW_value);
       T_value = keypad_read();
       variables_value_print("T", T_value, "N", N_value, "WWPC", WWPC_value, "TCW", CW_value);
       N_value = keypad_read();
       variables_value_print("T", T_value, "N", N_value, "WWPC", WWPC_value, "TCW", CW_value);
       WWPC_value = keypad_read();
+      WWPC_value*=10;
       variables_value_print("T", T_value, "N", N_value, "WWPC", WWPC_value, "TCW", CW_value);
       // cw_value will be equal to weight sensor data,.
       // SENSOR CODE IS PENDING....
